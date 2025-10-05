@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerability Assessment Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+    <div class="welcome-container">
+        <h1>🛡️ Security Portal</h1>
+        <p class="welcome-subtitle">Advanced Vulnerability Assessment & Security Management Platform</p>
+        
+        <div class="services-grid">
+            <!-- Show options based on user permissions -->
+            {% if user_permissions and 'lookup_router' in user_permissions %}
+            <div class="service-card">
+                <div class="service-icon">🔍</div>
+                <h3>Router/Switch Lookup</h3>
+                <p>Search vulnerability severity ratings in our comprehensive router and switch database</p>
+                <a href="{{ url_for('lookup_router') }}" class="btn btn-service">Search Router Database</a>
+            </div>
+            {% endif %}
+            
+            {% if user_permissions and 'lookup_firewall' in user_permissions %}
+            <div class="service-card">
+                <div class="service-icon">🔥</div>
+                <h3>Firewall Lookup</h3>
+                <p>Query firewall vulnerability severity ratings and security assessments</p>
+                <a href="{{ url_for('lookup_firewall') }}" class="btn btn-service">Search Firewall Database</a>
+            </div>
+            {% endif %}
+            
+            {% if user_permissions and 'convert_router' in user_permissions %}
+            <div class="service-card">
+                <div class="service-icon">📊</div>
+                <h3>Router Report Conversion</h3>
+                <p>Convert PDF reports to formatted documents with vulnerability analysis</p>
+                <a href="{{ url_for('convert_router_page') }}" class="btn btn-service">Convert Router Report</a>
+            </div>
+            {% endif %}
+            
+            {% if user_permissions and 'convert_firewall' in user_permissions %}
+            <div class="service-card">
+                <div class="service-icon">🛡️</div>
+                <h3>Firewall Report Conversion</h3>
+                <p>Transform firewall assessment PDFs into comprehensive security reports</p>
+                <a href="{{ url_for('convert_firewall_page') }}" class="btn btn-service">Convert Firewall Report</a>
+            </div>
+            {% endif %}
+            
+            {% if user_permissions and ('manual_review' in user_permissions or 'manual rev' in user_permissions) %}
+            <div class="service-card">
+                <div class="service-icon">🔬</div>
+                <h3>Manual Security Review</h3>
+                <p>Perform detailed manual analysis and review of security findings</p>
+                <a href="{{ url_for('manual_review') }}" class="btn btn-service">Start Manual Review</a>
+            </div>
+            {% endif %}
+            
+            <!-- Admin Panel - always show for easy access -->
+            <div class="service-card">
+                <div class="service-icon">👨‍💼</div>
+                <h3>Admin Panel</h3>
+                <p>Administrative access for user management and system configuration</p>
+                <a href="{{ url_for('admin_login') }}" class="btn btn-service">Admin Access</a>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+            <a href="{{ url_for('logout') }}" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-weight: 500;">🚪 Logout</a>
+        </div>
+    </div>
+</body>
+</html>

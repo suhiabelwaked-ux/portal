@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👑 Admin Dashboard</h1>
+            <div class="nav-links">
+                <a href="{{ url_for('manage_router_vulnerabilities') }}">🔍 Manage Router</a>
+                <a href="{{ url_for('manage_firewall_vulnerabilities') }}">🔥 Manage Firewall</a>
+                <a href="{{ url_for('manage_users') }}">👥 Manage Users</a>
+                <a href="{{ url_for('manage_groups') }}">🔐 Manage Groups</a>
+                <a href="{{ url_for('template_auth.logout') }}">🚪 Logout</a>
+            </div>
+        </div>
+        
+        {% if message %}
+            <div class="message success">{{ message }}</div>
+        {% endif %}
+
+        <!-- Admin Services Grid -->
+        <div class="services-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Vulnerability Management -->
+            <div class="service-card glass">
+                <h3 style="color: white; margin-bottom: 1rem;">🔍 Vulnerability Management</h3>
+                <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    Manage router and firewall vulnerability databases
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <a href="{{ url_for('manage_router_vulnerabilities') }}" class="btn btn-service">
+                        📡 Router/Switch Database
+                    </a>
+                    <a href="{{ url_for('manage_firewall_vulnerabilities') }}" class="btn btn-service">
+                        🔥 Firewall Database
+                    </a>
+                </div>
+            </div>
+
+            <!-- User & Access Management -->
+            <div class="service-card glass">
+                <h3 style="color: white; margin-bottom: 1rem;">👥 User & Access Control</h3>
+                <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    Manage users, groups, and permissions (RBAC)
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <a href="{{ url_for('manage_users') }}" class="btn btn-service">
+                        👤 Manage Users
+                    </a>
+                    <a href="{{ url_for('manage_groups') }}" class="btn btn-service">
+                        🔐 Groups & Permissions
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-container glass">
+            <h2 style="color: white; margin-bottom: 1.5rem; text-align: center;">
+                🔍 Pending Router/Switch Vulnerabilities
+            </h2>
+            
+            {% if router_pending %}
+                <div class="services-grid" style="grid-template-columns: 1fr; gap: 1rem;">
+                    {% for item in router_pending %}
+                        <div class="service-card" style="text-align: left; background: rgba(255, 255, 255, 0.05);">
+                            <div style="margin-bottom: 1rem;">
+                                <strong style="color: white; font-size: 1.1rem;">📝 {{ item.name }}</strong><br>
+                                <span style="color: rgba(255, 255, 255, 0.8);">👤 Submitted by: {{ item.submitted_by }}</span><br>
+                                <span style="color: #ff6b6b; font-weight: 600;">🚨 Severity: {{ item.severity }}</span>
+                            </div>
+                            
+                            <form method="post" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <input type="hidden" name="name" value="{{ item.name }}">
+                                <input type="hidden" name="search_type" value="router">
+                                <input type="hidden" name="submitted_by" value="{{ item.submitted_by }}">
+                                
+                                <div class="form-group" style="flex: 1; min-width: 150px;">
+                                    <select name="severity" style="background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); color: white; padding: 0.5rem;">
+                                        <option value="Critical" {% if item.severity == 'Critical' %}selected{% endif %}>🔴 Critical</option>
+                                        <option value="High" {% if item.severity == 'High' %}selected{% endif %}>🟠 High</option>
+                                        <option value="Medium" {% if item.severity == 'Medium' %}selected{% endif %}>🟡 Medium</option>
+                                        <option value="Low" {% if item.severity == 'Low' %}selected{% endif %}>🟢 Low</option>
+                                    </select>
+                                </div>
+                                
+                                <button type="submit" name="action" value="approve" class="btn btn-service" style="background: var(--success-gradient);">
+                                    ✅ Approve
+                                </button>
+                                <button type="submit" name="action" value="reject" class="btn btn-service" style="background: var(--danger-gradient);">
+                                    ❌ Reject
+                                </button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: rgba(255, 255, 255, 0.8); text-align: center; font-size: 1.1rem;">
+                    🎉 No pending Router/Switch vulnerabilities to review!
+                </p>
+            {% endif %}
+        </div>
+
+        <div class="form-container glass" style="margin-top: 2rem;">
+            <h2 style="color: white; margin-bottom: 1.5rem; text-align: center;">
+                🔥 Pending Firewall Vulnerabilities
+            </h2>
+            
+            {% if firewall_pending %}
+                <div class="services-grid" style="grid-template-columns: 1fr; gap: 1rem;">
+                    {% for item in firewall_pending %}
+                        <div class="service-card" style="text-align: left; background: rgba(255, 255, 255, 0.05);">
+                            <div style="margin-bottom: 1rem;">
+                                <strong style="color: white; font-size: 1.1rem;">📝 {{ item.name }}</strong><br>
+                                <span style="color: rgba(255, 255, 255, 0.8);">👤 Submitted by: {{ item.submitted_by }}</span><br>
+                                <span style="color: #ff6b6b; font-weight: 600;">🚨 Severity: {{ item.severity }}</span>
+                            </div>
+                            
+                            <form method="post" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <input type="hidden" name="name" value="{{ item.name }}">
+                                <input type="hidden" name="search_type" value="firewall">
+                                <input type="hidden" name="submitted_by" value="{{ item.submitted_by }}">
+                                
+                                <div class="form-group" style="flex: 1; min-width: 150px;">
+                                    <select name="severity" style="background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); color: white; padding: 0.5rem;">
+                                        <option value="Critical" {% if item.severity == 'Critical' %}selected{% endif %}>🔴 Critical</option>
+                                        <option value="High" {% if item.severity == 'High' %}selected{% endif %}>🟠 High</option>
+                                        <option value="Medium" {% if item.severity == 'Medium' %}selected{% endif %}>🟡 Medium</option>
+                                        <option value="Low" {% if item.severity == 'Low' %}selected{% endif %}>🟢 Low</option>
+                                    </select>
+                                </div>
+                                
+                                <button type="submit" name="action" value="approve" class="btn btn-service" style="background: var(--success-gradient);">
+                                    ✅ Approve
+                                </button>
+                                <button type="submit" name="action" value="reject" class="btn btn-service" style="background: var(--danger-gradient);">
+                                    ❌ Reject
+                                </button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: rgba(255, 255, 255, 0.8); text-align: center; font-size: 1.1rem;">
+                    🎉 No pending Firewall vulnerabilities to review!
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - Security Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h1>🚫 Access Denied</h1>
+                <p>You don't have permission to access this resource</p>
+            </div>
+            
+            <div class="error-message">
+                <p>{{ error }}</p>
+            </div>
+            
+            <div class="form-footer">
+                <a href="{{ url_for('main_page') }}" class="btn-primary">Back to Main Page</a>
+                <a href="{{ url_for('user_login') }}" class="btn-secondary">Re-login</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Convert Router/Switch Report</title>
+    <style>
+        /* ... (your existing CSS styles) ... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Convert Router/Switch Report</h1>
+        <p>Upload a PDF file to convert it to a Word document (.docx).</p>
+        <form class="form-upload" method="post" action="{{ url_for('convert_router') }}" enctype="multipart/form-data">
+            <input type="file" name="pdf_file" accept=".pdf" required>
+            <input type="submit" value="Convert">
+        </form>
+
+        {% if message %}
+            {% if "successfully" in message %}
+                <p class="message-success">{{ message }}</p>
+                {% if download_link %}
+                    <a href="{{ download_link }}" style="margin-top: 10px; display: inline-block; padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px;">Download Report</a>
+                {% endif %}
+            {% else %}
+                <p class="message-error">{{ message }}</p>
+            {% endif %}
+        {% endif %}
+
+        <a href="{{ url_for('main_page') }}" class="back-link">← Back to Main Page</a>
+    </div>
+</body>
+</html>

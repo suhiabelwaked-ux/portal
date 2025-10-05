@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Firewall Report</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <style>
+        /* Custom loader animation */
+        .loader {
+            border: 8px solid rgba(255, 255, 255, 0.3);
+            border-top: 8px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .convert-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Firewall Converter</h1>
+            <div class="nav-links">
+                <a href="{{ url_for('template_main.main_page') }}">🏠 Home</a>
+                <a href="{{ url_for('template_main.convert_router_page') }}">📄 Router Converter</a>
+                <a href="{{ url_for('logout') }}">🚪 Logout</a>
+            </div>
+        </div>
+        
+        {% if message %}
+            {% if "successfully" in message %}
+                <div class="message success">
+                    <strong>✅ Success!</strong> {{ message }}
+                    {% if download_link %}
+                        <br><br>
+                        <a href="{{ download_link }}" class="btn btn-service" style="background: var(--success-gradient); margin-top: 10px;">
+                            📥 Download Report
+                        </a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="message error">
+                    <strong>❌ Error:</strong> {{ message }}
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <div class="form-container glass convert-container">
+            <h2 style="color: white; margin-bottom: 1rem;">🔄 PDF to Word Converter</h2>
+            <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 2rem;">
+                Upload a Firewall PDF report to convert it to a Word document (.docx)
+            </p>
+            
+            <form method="post" action="{{ url_for('template_main.convert_firewall') }}" enctype="multipart/form-data" id="convertForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pdf_file">📎 Select PDF File:</label>
+                        <input type="file" id="pdf_file" name="pdf_file" accept=".pdf" required 
+                               style="background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); padding: 0.8rem; color: white;">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-service" style="width: 100%; margin-top: 1.5rem; font-size: 1.1rem;">
+                    🚀 Convert to Word
+                </button>
+            </form>
+
+            <div class="loader" id="loader"></div>
+            
+            <div id="processing-message" style="display: none; color: white; margin-top: 1rem;">
+                <p>⏳ Processing your file... This may take a few moments.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('convertForm').addEventListener('submit', function() {
+            // Hide the form and show processing state
+            this.style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('processing-message').style.display = 'block';
+        });
+    </script>
+</body>
+</html>

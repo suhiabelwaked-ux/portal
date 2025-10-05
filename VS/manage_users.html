@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Admin Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 User Management</h1>
+            <div class="nav-links">
+                <a href="{{ url_for('template_admin.admin_dashboard') }}">🏠 Admin Dashboard</a>
+                <a href="{{ url_for('template_admin.manage_groups') }}">👥 Manage Groups</a>
+                <a href="{{ url_for('template_auth.logout') }}">🚪 Logout</a>
+            </div>
+        </div>
+
+        {% if message %}
+            <div class="message success" style="margin-bottom: 2rem;">
+                ✅ {{ message }}
+            </div>
+        {% endif %}
+
+        <!-- Add New User Section -->
+        <div class="form-container glass">
+            <h2 style="color: white; margin-bottom: 1.5rem; text-align: center;">
+                ➕ Add New User
+            </h2>
+            
+            <form class="modern-form" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="action" value="add">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username">👤 Username:</label>
+                        <input type="text" id="username" name="username" 
+                               placeholder="Enter new username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">🔒 Password:</label>
+                        <input type="password" id="password" name="password" 
+                               placeholder="Enter secure password" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-service" style="width: 100%; margin-top: 1rem;">
+                    ➕ Create User Account
+                </button>
+            </form>
+        </div>
+
+        <!-- Existing Users Section -->
+        <div class="form-container glass" style="margin-top: 2rem;">
+            <h2 style="color: white; margin-bottom: 1.5rem; text-align: center;">
+                📋 User Management Panel
+            </h2>
+            
+            {% if users %}
+                <div class="users-grid">
+                    {% for user in users %}
+                        <div class="user-card glass" style="padding: 1.5rem; margin-bottom: 1rem; background: rgba(255, 255, 255, 0.1); border-radius: 12px;">
+                            <!-- User Header Info -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <div class="user-info">
+                                    <h3 style="color: white; margin: 0; font-size: 1.1rem;">
+                                        👤 {{ user.username }}
+                                    </h3>
+                                    <div style="margin-top: 0.25rem;">
+                                        {% if user.status == 'enabled' %}
+                                            <span style="color: #4CAF50; font-size: 0.9rem; font-weight: bold;">
+                                                ✅ Active
+                                            </span>
+                                        {% else %}
+                                            <span style="color: #ff6b6b; font-size: 0.9rem; font-weight: bold;">
+                                                ❌ Disabled
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Status Toggle Button -->
+                                <form method="post" style="margin: 0;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="action" value="toggle_status">
+                                    <input type="hidden" name="username" value="{{ user.username }}">
+                                    {% if user.status == 'enabled' %}
+                                        <button type="submit" class="btn btn-warning" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" 
+                                                onclick="return confirm('⚠️ Are you sure you want to disable user {{ user.username }}?');">
+                                            🚫 Disable
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-success" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: var(--success-gradient);" 
+                                                onclick="return confirm('✅ Are you sure you want to enable user {{ user.username }}?');">
+                                            ✅ Enable
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </div>
+
+                            <!-- User Actions -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-top: 1rem;">
+                                <!-- Change Password Form -->
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px;">
+                                    <h4 style="color: white; margin: 0 0 0.75rem 0; font-size: 0.9rem;">🔐 Change Password</h4>
+                                    <form method="post" style="margin: 0;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="action" value="change_password">
+                                        <input type="hidden" name="username" value="{{ user.username }}">
+                                        <div style="margin-bottom: 0.5rem;">
+                                            <input type="password" name="new_password" 
+                                                   placeholder="New password" required
+                                                   style="width: 100%; padding: 0.5rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; background: rgba(255,255,255,0.1); color: white; font-size: 0.85rem;">
+                                        </div>
+                                        <button type="submit" class="btn btn-service" 
+                                                style="width: 100%; padding: 0.4rem; font-size: 0.8rem;"
+                                                onclick="return confirm('🔒 Change password for user {{ user.username }}?');">
+                                            🔄 Update
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Group Management -->
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px;">
+                                    <h4 style="color: white; margin: 0 0 0.75rem 0; font-size: 0.9rem;">👥 Groups</h4>
+                                    
+                                    <!-- Current Groups -->
+                                    {% if user.groups %}
+                                        <div style="margin-bottom: 0.75rem;">
+                                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.8rem; margin: 0 0 0.5rem 0;">Current Groups:</p>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.5rem;">
+                                                {% for group in user.groups %}
+                                                    <div style="background: rgba(33, 150, 243, 0.2); border: 1px solid rgba(33, 150, 243, 0.4); padding: 0.25rem 0.5rem; border-radius: 4px; display: flex; align-items: center; gap: 0.25rem;">
+                                                        <span style="color: #2196F3; font-size: 0.75rem;">{{ group.name }}</span>
+                                                        <form method="post" style="margin: 0; display: inline;">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                            <input type="hidden" name="action" value="remove_group">
+                                                            <input type="hidden" name="username" value="{{ user.username }}">
+                                                            <input type="hidden" name="group_id" value="{{ group.id }}">
+                                                            <button type="submit" style="background: none; border: none; color: #ff6b6b; cursor: pointer; font-size: 0.6rem; padding: 0;"
+                                                                    onclick="return confirm('Remove user {{ user.username }} from group {{ group.name }}?');">
+                                                                ✖
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Assign New Group -->
+                                    {% if groups %}
+                                        <form method="post" style="display: flex; gap: 0.5rem; align-items: end;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <input type="hidden" name="action" value="assign_group">
+                                            <input type="hidden" name="username" value="{{ user.username }}">
+                                            <div style="flex: 1;">
+                                                <select name="group_id" style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; padding: 0.4rem; color: white; font-size: 0.75rem;">
+                                                    <option value="">Add to group...</option>
+                                                    {% for group in groups %}
+                                                        {% if group not in user.groups %}
+                                                            <option value="{{ group.id }}">{{ group.name }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="btn btn-service" style="padding: 0.4rem 0.6rem; font-size: 0.75rem; white-space: nowrap;">
+                                                ➕ Add
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Delete User Form -->
+                                <div style="background: rgba(255, 107, 107, 0.1); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 107, 107, 0.3);">
+                                    <h4 style="color: #ff6b6b; margin: 0 0 0.75rem 0; font-size: 0.9rem;">🗑️ Delete User</h4>
+                                    <p style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; margin: 0 0 0.75rem 0;">
+                                        This action cannot be undone
+                                    </p>
+                                    <form method="post" style="margin: 0;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="username" value="{{ user.username }}">
+                                        <button type="submit" class="btn btn-danger" 
+                                                style="width: 100%; padding: 0.4rem; font-size: 0.8rem;"
+                                                onclick="return confirm('⚠️ Are you absolutely sure you want to DELETE user {{ user.username }}? This action cannot be undone!');">
+                                            🗑️ Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="color: rgba(255, 255, 255, 0.6); font-size: 1.1rem;">
+                        👥 No users found in the system
+                    </div>
+                    <p style="color: rgba(255, 255, 255, 0.5); margin-top: 0.5rem;">
+                        Create your first user account using the form above
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- User Management Guidelines -->
+        <div class="form-container glass" style="margin-top: 2rem;">
+            <h3 style="color: white; margin-bottom: 1rem; text-align: center;">
+                ℹ️ User Management Features
+            </h3>
+            <div style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
+                <div style="margin-bottom: 0.8rem;">
+                    ➕ <strong>Add Users:</strong> Create new user accounts with username and password
+                </div>
+                <div style="margin-bottom: 0.8rem;">
+                    🔐 <strong>Change Password:</strong> Update user passwords for security management
+                </div>
+                <div style="margin-bottom: 0.8rem;">
+                    🚫 <strong>Enable/Disable:</strong> Control user access without deleting accounts
+                </div>
+                <div style="margin-bottom: 0.8rem;">
+                    ✅ <strong>Status Display:</strong> Easily see which users are active or disabled
+                </div>
+                <div>
+                    🗑️ <strong>Delete Users:</strong> Permanently remove user accounts (irreversible)
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

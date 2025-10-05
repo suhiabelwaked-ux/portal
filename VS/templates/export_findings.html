@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Failed Findings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Export Findings Page Styles */
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .export-container {
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .export-container::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            50% { transform: translate(-50%, -50%) rotate(180deg); }
+        }
+
+        .nav-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .export-header {
+            text-align: center;
+            padding: 4rem 2rem 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .export-title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .export-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .progress-indicator {
+            text-align: center;
+            margin-bottom: 2rem;
+            z-index: 2;
+            position: relative;
+        }
+
+        .progress-text {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .finding-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .finding-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            border-radius: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .finding-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 2rem;
+            text-align: center;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .text-box {
+            width: 100%;
+            min-height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            color: white;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            resize: vertical;
+            backdrop-filter: blur(10px);
+            margin-bottom: 1.5rem;
+        }
+
+        .text-box:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .text-box::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .section-label {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .navigation-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .nav-control-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-prev {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+        }
+
+        .btn-home {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .nav-control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .nav-control-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-control-btn:hover::before {
+            left: 100%;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .export-title {
+                font-size: 2.2rem;
+            }
+            .finding-card {
+                padding: 1.5rem;
+            }
+            .navigation-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            .nav-control-btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="export-container">
+        <div class="nav-bar">
+            <a href="{{ url_for('review_summary') }}" class="nav-btn">🔙 Back to Summary</a>
+            <a href="{{ url_for('main_page') }}" class="nav-btn">🏠 Home</a>
+            <a href="{{ url_for('logout') }}" class="nav-btn">🚪 Logout</a>
+        </div>
+
+        <div class="export-header">
+            <h1 class="export-title">📄 FAILED FINDINGS EXPORT</h1>
+            <p class="export-subtitle">Review and navigate through failed security findings</p>
+        </div>
+
+        <div class="progress-indicator">
+            <div class="progress-text" id="progressText">
+                Finding {{ current_index + 1 }} of {{ total_findings }}
+            </div>
+        </div>
+
+        <div class="finding-container">
+            <div class="finding-card">
+                <h2 class="finding-title" id="findingTitle">{{ current_finding.header }}</h2>
+                
+                <div class="section-label">Description:</div>
+                <textarea class="text-box" id="descriptionBox" readonly>{{ current_finding.description }}</textarea>
+                
+                <div class="section-label">Remediation:</div>
+                <textarea class="text-box" id="remediationBox" readonly>{{ current_finding.remediation }}</textarea>
+            </div>
+
+            <div class="navigation-controls">
+                <button class="nav-control-btn btn-prev" id="prevBtn" 
+                        onclick="navigateFinding('prev')" 
+                        {% if not has_prev %}disabled{% endif %}>
+                    ⬅️ Previous
+                </button>
+                
+                <button class="nav-control-btn btn-home" onclick="goHome()">
+                    🏠 Back to Summary
+                </button>
+                
+                <button class="nav-control-btn btn-next" id="nextBtn" 
+                        onclick="navigateFinding('next')" 
+                        {% if not has_next %}disabled{% endif %}>
+                    Next ➡️
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        let currentIndex = {{ current_index }};
+        
+        function navigateFinding(action) {
+            // Show loading
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            // Disable all buttons
+            const buttons = document.querySelectorAll('.nav-control-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            fetch('/export_failed_findings/navigate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: action,
+                    index: currentIndex
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    // Update current index
+                    currentIndex = data.current_index;
+                    
+                    // Update the finding display
+                    updateFindingDisplay(data.finding, data.current_index, data.total_findings, data.has_prev, data.has_next);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to navigate: ' + error.message);
+            })
+            .finally(() => {
+                // Hide loading and re-enable buttons
+                document.getElementById('loadingOverlay').style.display = 'none';
+                buttons.forEach(btn => btn.disabled = false);
+                
+                // Update button states
+                updateNavigationButtons(data?.has_prev, data?.has_next);
+            });
+        }
+
+        function updateFindingDisplay(finding, index, total, hasPrev, hasNext) {
+            // Update progress
+            document.getElementById('progressText').textContent = `Finding ${index + 1} of ${total}`;
+            
+            // Update finding content
+            document.getElementById('findingTitle').textContent = finding.header || 'No header available';
+            document.getElementById('descriptionBox').value = finding.description || 'No description available';
+            document.getElementById('remediationBox').value = finding.remediation || 'No remediation available';
+            
+            // Update navigation buttons
+            updateNavigationButtons(hasPrev, hasNext);
+        }
+
+        function updateNavigationButtons(hasPrev, hasNext) {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.disabled = !hasPrev;
+            nextBtn.disabled = !hasNext;
+        }
+
+        function goHome() {
+            window.location.href = "{{ url_for('review_summary') }}";
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft' && !document.getElementById('prevBtn').disabled) {
+                navigateFinding('prev');
+            } else if (e.key === 'ArrowRight' && !document.getElementById('nextBtn').disabled) {
+                navigateFinding('next');
+            }
+        });
+    </script>
+</body>
+</html>

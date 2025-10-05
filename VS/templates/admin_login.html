@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body class="login-page">
+    <div class="login-container glass">
+        <h1>👨‍💼 Admin Portal</h1>
+        <p class="login-subtitle">Administrative Access to Security Management System</p>
+        
+        <form class="login-form" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="input-group">
+                <input type="text" id="username" name="username" placeholder="🔐 Admin Username" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" name="password" placeholder="🔑 Admin Password" required>
+            </div>
+            <button type="submit" class="btn btn-login">
+                🚀 Access Admin Panel
+            </button>
+        </form>
+        
+        {% if error %}
+            <div class="error-message">
+                ⚠️ {{ error }}
+            </div>
+        {% endif %}
+        
+        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+            <p style="color: rgba(255, 255, 255, 0.6); font-size: 0.9rem;">
+                👤 Regular user? <a href="{{ url_for('user_login') }}" style="color: rgba(255, 255, 255, 0.8);">User Login</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

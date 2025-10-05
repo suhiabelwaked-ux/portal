@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manual Review</title>
+    <style>
+        /* ... (previous styles) ... */
+        .buttons a { 
+            text-decoration: none; 
+        }
+        .status-pass { color: #28a745; font-weight: bold; }
+        .status-fail { color: #dc3545; font-weight: bold; }
+        .finding-card h4 { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Manual Review</h1>
+        <p>Upload a PDF file to review the extracted findings.</p>
+        <form class="form-upload" method="post" action="{{ url_for('manual_review') }}" enctype="multipart/form-data">
+            <input type="file" name="pdf_file" accept=".pdf" required>
+            <input type="submit" value="Run Review">
+        </form>
+
+        {% if finding %}
+            <div class="results-container">
+                <h2>Extracted Finding {{ index + 1 }} of {{ total }}:</h2>
+                <div class="finding-card">
+                    <h4>
+                        {% if finding.status == 'pass' %}
+                            Status: <span class="status-pass">Passed</span>
+                        {% elif finding.status == 'fail' %}
+                            Status: <span class="status-fail">Failed</span>
+                        {% else %}
+                            Status: Pending
+                        {% endif %}
+                    </h4>
+                    <h3>{{ finding.header }}</h3>
+                    <p><strong>Description:</strong> {{ finding.description }}</p>
+                    <p><strong>Remediation:</strong> {{ finding.remediation }}</p>
+                    <p><strong>Audit:</strong></p>
+                    {% if finding.audit_image_url %}
+                        <img src="{{ finding.audit_image_url }}" alt="Audit Step Image" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px; margin-top: 5px;">
+                    {% else %}
+                        <p style="background-color: #f8f9fa; border: 1px solid #ddd; padding: 10px; border-radius: 4px; color: #555;">
+                            <em>{{ finding.audit_status }}</em>
+                        </p>
+                    {% endif %}
+
+                    <div class="buttons">
+                        <a href="{{ url_for('manual_review', action='pass', index=index) }}" class="btn-pass">Pass</a>
+                        <a href="{{ url_for('manual_review', action='fail', index=index) }}" class="btn-fail">Fail</a>
+                    </div>
+                </div>
+                <div class="pagination">
+                    {% if index > 0 %}
+                        <a href="{{ url_for('manual_review', direction='prev') }}">Previous</a>
+                    {% else %}
+                        <a href="#" class="disabled">Previous</a>
+                    {% endif %}
+                    
+                    {% if index < total - 1 %}
+                        <a href="{{ url_for('manual_review', direction='next') }}">Next</a>
+                    {% else %}
+                        <a href="{{ url_for('generate_manual_report') }}" class="btn-finish">Finished Report</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <a href="{{ url_for('main_page') }}" class="back-link">← Back to Main Page</a>
+    </div>
+</body>
+</html>

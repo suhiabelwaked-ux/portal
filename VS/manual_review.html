@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Security Review</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <style>
+        /* Creative Manual Review Styles */
+        .creative-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, 
+                rgba(74, 144, 226, 0.1) 0%, 
+                rgba(142, 68, 173, 0.1) 25%, 
+                rgba(246, 79, 89, 0.1) 50%,
+                rgba(255, 154, 0, 0.1) 75%,
+                rgba(102, 187, 106, 0.1) 100%
+            );
+            position: relative;
+            overflow: hidden;
+        }
+
+        .creative-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.02)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(1px, -1px) rotate(1deg); }
+            66% { transform: translate(-1px, 1px) rotate(-1deg); }
+        }
+
+        .creative-header {
+            text-align: center;
+            padding: 3rem 1rem 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .creative-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            animation: titlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .creative-subtitle {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .upload-zone {
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .upload-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            border-radius: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent
+            );
+            transition: left 0.5s;
+        }
+
+        .upload-card:hover::before {
+            left: 100%;
+        }
+
+        .upload-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            animation: bounce 2s infinite;
+            text-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 1.5rem;
+            border: 3px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-input:hover {
+            border-color: rgba(102, 126, 234, 0.6);
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 1.2rem 3rem;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .upload-btn:hover::before {
+            left: 100%;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .findings-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .findings-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .findings-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .findings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .finding-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .finding-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .finding-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .finding-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border-left: 3px solid rgba(102, 126, 234, 0.6);
+        }
+
+        .section-title {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-content {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .review-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            font-size: 1rem;
+        }
+
+        .btn-pass {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+        }
+
+        .btn-fail {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .action-btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .info-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .info-title {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .info-desc {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .creative-title { font-size: 2.5rem; }
+            .findings-grid { grid-template-columns: 1fr; }
+            .upload-card { padding: 2rem 1.5rem; }
+            .nav-bar { position: relative; top: auto; right: auto; justify-content: center; margin-bottom: 2rem; }
+        }
+
+        /* Navigation Controls for Single Finding Display */
+        .navigation-controls .nav-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 150px;
+        }
+
+        .navigation-controls .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .navigation-controls .nav-btn:hover::before {
+            left: 100%;
+        }
+
+        .navigation-controls .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .nav-finish {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%) !important;
+            box-shadow: 0 8px 25px rgba(86, 171, 47, 0.3) !important;
+        }
+
+        .nav-finish:hover {
+            box-shadow: 0 12px 35px rgba(86, 171, 47, 0.5) !important;
+            transform: translateY(-3px);
+        }
+
+        /* Single Finding Container */
+        .single-finding-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .single-finding-container .finding-card {
+            margin-bottom: 0;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // AJAX Navigation for Manual Review
+        let currentIndex = {{ index if index is defined else 0 }};
+        let totalFindings = {{ total if total is defined else 0 }};
+        
+        // Request debouncing - prevent multiple rapid clicks
+        let isProcessing = false;
+        
+        // Utility function to make AJAX calls
+        async function makeAjaxCall(action, index = null) {
+            const payload = {
+                action: action,
+                index: index !== null ? index : currentIndex
+            };
+
+            try {
+                const response = await fetch('/manual_review/action', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok || !data.ok) {
+                    throw new Error(data.error || 'Request failed');
+                }
+
+                return data;
+            } catch (error) {
+                console.error('AJAX Error:', error);
+                alert('Error: ' + error.message);
+                throw error;
+            }
+        }
+
+        // Update the finding display with new data
+        function updateFindingDisplay(finding, index, total, hasNext, hasPrev, isLast) {
+            currentIndex = index;
+            totalFindings = total;
+            
+            // Update finding content
+            const findingCard = document.getElementById('finding-single');
+            if (findingCard) {
+                // Update header
+                const header = findingCard.querySelector('.finding-header');
+                if (header) {
+                    header.innerHTML = '<span>🔍</span>' + finding.header;
+                }
+                
+                // Update description
+                const descSection = findingCard.querySelector('.finding-section:nth-child(2) .section-content');
+                if (descSection) {
+                    descSection.textContent = finding.description;
+                }
+                
+                // Update remediation
+                const remSection = findingCard.querySelector('.finding-section:nth-child(3) .section-content');
+                if (remSection) {
+                    remSection.textContent = finding.remediation;
+                }
+                
+                // Update audit evidence
+                const auditSection = findingCard.querySelector('.finding-section:nth-child(4)');
+                if (auditSection) {
+                    const contentDiv = auditSection.querySelector('.section-content');
+                    if (finding.audit_image_url) {
+                        auditSection.innerHTML = `
+                            <div class="section-title">🔍 Audit Evidence</div>
+                            <img src="${finding.audit_image_url}" alt="Security Evidence" 
+                                 style="max-width: 100%; border-radius: 8px; margin-top: 0.5rem;">
+                        `;
+                    } else if (contentDiv) {
+                        contentDiv.textContent = finding.audit_status || 'No audit evidence available';
+                    }
+                }
+            }
+            
+            // Update progress indicator
+            const progressElement = document.querySelector('.findings-header p');
+            if (progressElement) {
+                progressElement.innerHTML = `<strong>Finding ${index + 1} of ${total}</strong> - Expert Review Mode`;
+            }
+            
+            // Update navigation controls
+            updateNavigationControls(hasNext, hasPrev, isLast);
+        }
+
+        // Update navigation button states
+        function updateNavigationControls(hasNext, hasPrev, isLast) {
+            const navControls = document.querySelector('.navigation-controls');
+            if (navControls) {
+                let leftButton = '';
+                let rightButton = '';
+                
+                if (hasPrev) {
+                    leftButton = '<button onclick="navigatePrevious()" class="nav-btn nav-prev">← Previous</button>';
+                } else {
+                    leftButton = '<div></div>';
+                }
+                
+                if (hasNext) {
+                    rightButton = '<button onclick="navigateNext()" class="nav-btn nav-next">Next →</button>';
+                } else if (isLast) {
+                    rightButton = '<button onclick="finishReview()" class="nav-btn nav-finish">✅ Finished Review</button>';
+                }
+                
+                navControls.innerHTML = leftButton + rightButton;
+            }
+        }
+
+        // Helper function to disable/enable action buttons
+        function disableActionButtons(disabled) {
+            const passBtn = document.querySelector('.btn-pass');
+            const failBtn = document.querySelector('.btn-fail');
+            const navBtns = document.querySelectorAll('.nav-btn');
+            
+            [passBtn, failBtn, ...navBtns].forEach(btn => {
+                if (btn) {
+                    btn.disabled = disabled;
+                    btn.style.opacity = disabled ? '0.6' : '1';
+                    btn.style.cursor = disabled ? 'not-allowed' : 'pointer';
+                }
+            });
+        }
+
+        // Navigation functions
+        async function navigateNext() {
+            if (isProcessing) return;
+            isProcessing = true;
+            disableActionButtons(true);
+            
+            try {
+                const data = await makeAjaxCall('next');
+                updateFindingDisplay(data.finding, data.index, data.total, data.has_next, data.has_prev, data.is_last);
+            } catch (error) {
+                console.error('Error navigating next:', error);
+            } finally {
+                setTimeout(() => {
+                    disableActionButtons(false);
+                    isProcessing = false;
+                }, 300);
+            }
+        }
+
+        async function navigatePrevious() {
+            if (isProcessing) return;
+            isProcessing = true;
+            disableActionButtons(true);
+            
+            try {
+                const data = await makeAjaxCall('prev');
+                updateFindingDisplay(data.finding, data.index, data.total, data.has_next, data.has_prev, data.is_last);
+            } catch (error) {
+                console.error('Error navigating previous:', error);
+            } finally {
+                setTimeout(() => {
+                    disableActionButtons(false);
+                    isProcessing = false;
+                }, 300);
+            }
+        }
+
+        // Action functions
+        async function markPass() {
+            // Prevent multiple rapid clicks
+            if (isProcessing) return;
+            isProcessing = true;
+            
+            // Disable buttons during processing
+            disableActionButtons(true);
+            
+            try {
+                const data = await makeAjaxCall('pass');
+                updateFindingDisplay(data.finding, data.index, data.total, data.has_next, data.has_prev, data.is_last);
+                
+                // Show visual feedback
+                showActionFeedback('✅ Marked as PASS', 'success');
+            } catch (error) {
+                console.error('Error marking pass:', error);
+                showActionFeedback('❌ Error marking as PASS. Please try again.', 'error');
+            } finally {
+                // Re-enable buttons after processing
+                setTimeout(() => {
+                    disableActionButtons(false);
+                    isProcessing = false;
+                }, 300); // Small delay to prevent rapid clicking
+            }
+        }
+
+        async function markFail() {
+            // Prevent multiple rapid clicks
+            if (isProcessing) return;
+            isProcessing = true;
+            
+            // Disable buttons during processing
+            disableActionButtons(true);
+            
+            try {
+                const data = await makeAjaxCall('fail');
+                updateFindingDisplay(data.finding, data.index, data.total, data.has_next, data.has_prev, data.is_last);
+                
+                // Show visual feedback
+                showActionFeedback('❌ Marked as FAIL', 'error');
+            } catch (error) {
+                console.error('Error marking fail:', error);
+                showActionFeedback('❌ Error marking as FAIL. Please try again.', 'error');
+            } finally {
+                // Re-enable buttons after processing
+                setTimeout(() => {
+                    disableActionButtons(false);
+                    isProcessing = false;
+                }, 300); // Small delay to prevent rapid clicking
+            }
+        }
+
+        async function finishReview() {
+            try {
+                const data = await makeAjaxCall('finished');
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
+            } catch (error) {
+                console.error('Error finishing review:', error);
+            }
+        }
+
+        // Action functions for specific indices (grid view)
+        async function markPassForIndex(index) {
+            try {
+                const data = await makeAjaxCall('pass', index);
+                showActionFeedback(`✅ Finding ${index + 1} marked as PASS`, 'success');
+                
+                // Update the card visual state
+                const card = document.getElementById(`finding-${index + 1}`);
+                if (card) {
+                    card.style.borderLeft = '5px solid #38ef7d';
+                    card.style.backgroundColor = 'rgba(56, 239, 125, 0.1)';
+                }
+            } catch (error) {
+                console.error('Error marking pass for index:', error);
+            }
+        }
+
+        async function markFailForIndex(index) {
+            try {
+                const data = await makeAjaxCall('fail', index);
+                showActionFeedback(`❌ Finding ${index + 1} marked as FAIL`, 'error');
+                
+                // Update the card visual state
+                const card = document.getElementById(`finding-${index + 1}`);
+                if (card) {
+                    card.style.borderLeft = '5px solid #ff4b2b';
+                    card.style.backgroundColor = 'rgba(255, 75, 43, 0.1)';
+                }
+            } catch (error) {
+                console.error('Error marking fail for index:', error);
+            }
+        }
+
+        // Visual feedback function
+        function showActionFeedback(message, type) {
+            // Create feedback element
+            const feedback = document.createElement('div');
+            feedback.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 2rem;
+                border-radius: 8px;
+                color: white;
+                font-weight: 600;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                ${type === 'success' ? 'background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);' : 'background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);'}
+            `;
+            feedback.textContent = message;
+            
+            document.body.appendChild(feedback);
+            
+            // Remove after 2 seconds
+            setTimeout(() => {
+                feedback.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    if (feedback.parentNode) {
+                        feedback.parentNode.removeChild(feedback);
+                    }
+                }, 300);
+            }, 2000);
+        }
+
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+    <div class="creative-container">
+        <div class="nav-bar">
+            <a href="{{ url_for('main_page') }}" class="nav-btn">🏠 Home</a>
+            <a href="{{ url_for('logout') }}" class="nav-btn">🚪 Logout</a>
+        </div>
+
+        <div class="creative-header">
+            <h1 class="creative-title">🔬 SECURITY ANALYZER</h1>
+            <p class="creative-subtitle">Advanced PDF Security Assessment & Manual Review Platform</p>
+        </div>
+
+        <div class="upload-zone">
+            <div class="upload-card">
+                <span class="upload-icon">📄</span>
+                <h3 style="color: white; font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">
+                    Upload Security Assessment
+                </h3>
+                <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 2rem; line-height: 1.6;">
+                    Drop your PDF security reports here for advanced AI-powered analysis and comprehensive manual review
+                </p>
+
+                <form method="post" action="{{ url_for('manual_review') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <div class="file-input-wrapper">
+                        <input type="file" id="pdf_file" name="pdf_file" accept=".pdf" required class="file-input">
+                    </div>
+                    
+                    <button type="submit" class="upload-btn">
+                        🚀 ANALYZE DOCUMENT
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if finding and index is defined and total is defined %}
+            <!-- Single Finding Display with Navigation -->
+            <div class="findings-container">
+                <div class="findings-header">
+                    <h2 class="findings-title">🔍 Security Finding Review</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 1.1rem;">
+                        <strong>Finding {{ index + 1 }} of {{ total }}</strong> - Expert Review Mode
+                    </p>
+                </div>
+                
+                <div class="single-finding-container">
+                    <div class="finding-card active" id="finding-single">
+                        <div class="finding-header">
+                            <span>🔍</span>
+                            {{ finding.header }}
+                        </div>
+                        
+                        <div class="finding-section">
+                            <div class="section-title">📋 Description</div>
+                            <div class="section-content">{{ finding.description }}</div>
+                        </div>
+                        
+                        <div class="finding-section">
+                            <div class="section-title">🛠️ Remediation</div>
+                            <div class="section-content">{{ finding.remediation }}</div>
+                        </div>
+                        
+                        <div class="finding-section">
+                            <div class="section-title">🔍 Audit Evidence</div>
+                            {% if finding.audit_image_url %}
+                                <img src="{{ finding.audit_image_url }}" alt="Security Evidence" 
+                                     style="max-width: 100%; border-radius: 8px; margin-top: 0.5rem;">
+                            {% else %}
+                                <div class="section-content">{{ finding.audit_status }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="review-actions">
+                            <button onclick="markPass()" class="action-btn btn-pass">
+                                ✅ PASS
+                            </button>
+                            <button onclick="markFail()" class="action-btn btn-fail">
+                                ❌ FAIL
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation Controls -->
+                    <div class="navigation-controls" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                        {% if index > 0 %}
+                            <button onclick="navigatePrevious()" class="nav-btn nav-prev">
+                                ← Previous
+                            </button>
+                        {% else %}
+                            <div></div> <!-- Empty div to maintain layout -->
+                        {% endif %}
+                        
+                        {% if index < total - 1 %}
+                            <button onclick="navigateNext()" class="nav-btn nav-next">
+                                Next →
+                            </button>
+                        {% else %}
+                            <button onclick="finishReview()" class="nav-btn nav-finish">
+                                ✅ Finished the Review
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% elif findings %}
+            <div class="findings-container">
+                <div class="findings-header">
+                    <h2 class="findings-title">🛡️ Security Findings</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 1.1rem;">
+                        Discovered <strong>{{ findings | length }}</strong> security findings requiring expert review
+                    </p>
+                </div>
+
+                <div class="findings-grid">
+                    {% for finding in findings %}
+                        <div class="finding-card" id="finding-{{ loop.index }}" style="animation-delay: {{ loop.index * 0.1 }}s;">
+                            <div class="finding-header">
+                                <span>🔍</span>
+                                {{ finding.header }}
+                            </div>
+                            
+                            <div class="finding-section">
+                                <div class="section-title">📋 Description</div>
+                                <div class="section-content">{{ finding.description }}</div>
+                            </div>
+                            
+                            <div class="finding-section">
+                                <div class="section-title">🛠️ Remediation</div>
+                                <div class="section-content">{{ finding.remediation }}</div>
+                            </div>
+                            
+                            <div class="finding-section">
+                                <div class="section-title">🔍 Audit Evidence</div>
+                                {% if finding.audit_image_url %}
+                                    <img src="{{ finding.audit_image_url }}" alt="Security Evidence" 
+                                         style="max-width: 100%; border-radius: 8px; margin-top: 0.5rem;">
+                                {% else %}
+                                    <div class="section-content">{{ finding.audit_status }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="review-actions">
+                                <button onclick="markPassForIndex({{ loop.index0 }})" class="action-btn btn-pass">
+                                    ✅ PASS
+                                </button>
+                                <button onclick="markFailForIndex({{ loop.index0 }})" class="action-btn btn-fail">
+                                    ❌ FAIL
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="findings-container">
+                <div class="info-cards">
+                    <div class="info-card">
+                        <span class="info-icon">🤖</span>
+                        <div class="info-title">AI-Powered Analysis</div>
+                        <div class="info-desc">Advanced machine learning algorithms automatically extract and categorize security findings from complex assessment reports</div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <span class="info-icon">🎯</span>
+                        <div class="info-title">Expert Review</div>
+                        <div class="info-desc">Professional security analysts can mark findings as pass or fail with comprehensive audit trails and documentation</div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <span class="info-icon">📊</span>
+                        <div class="info-title">Visual Evidence</div>
+                        <div class="info-desc">Review screenshots, diagrams, and visual proof alongside textual findings for complete security assessment</div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <span class="info-icon">⚡</span>
+                        <div class="info-title">Real-time Processing</div>
+                        <div class="info-desc">Lightning-fast PDF processing with instant results and interactive review interface for maximum productivity</div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <div class="loader-text">Processing Security Assessment</div>
+            <div class="loader-subtext">Analyzing PDF for vulnerabilities...</div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setupLoadingAnimation();
+        });
+
+        // Show loading animation when analyzing document
+        function setupLoadingAnimation() {
+            const uploadForm = document.querySelector('form[action="{{ url_for("manual_review") }}"]');
+            const loader = document.getElementById('loader');
+            
+            if (uploadForm && loader) {
+                uploadForm.addEventListener('submit', function(e) {
+                    const fileInput = document.getElementById('pdf_file');
+                    if (fileInput && fileInput.files.length > 0) {
+                        // Show loader
+                        loader.style.display = 'flex';
+                    }
+                });
+            }
+        }
+
+        // Setup AJAX Navigation for Pass/Fail/Next/Previous
+        function setupAjaxNavigation() {
+            const findingCard = document.getElementById('finding-single');
+            if (!findingCard) return;
+
+            // Get all action buttons and add AJAX handlers
+            attachButtonHandlers();
+        }
+
+        function attachButtonHandlers() {
+            const passBtn = document.querySelector('.btn-pass');
+            const failBtn = document.querySelector('.btn-fail');
+            const prevBtn = document.querySelector('.nav-prev');
+            const nextBtn = document.querySelector('.nav-next');
+            const finishBtn = document.querySelector('.nav-finish');
+
+            if (passBtn) passBtn.addEventListener('click', (e) => { e.preventDefault(); handleAction('pass'); });
+            if (failBtn) failBtn.addEventListener('click', (e) => { e.preventDefault(); handleAction('fail'); });
+            if (prevBtn) prevBtn.addEventListener('click', (e) => { e.preventDefault(); handleAction('prev'); });
+            if (nextBtn) nextBtn.addEventListener('click', (e) => { e.preventDefault(); handleAction('next'); });
+            if (finishBtn) finishBtn.addEventListener('click', (e) => { e.preventDefault(); handleAction('finished'); });
+        }
+
+        function handleAction(action) {
+            // Disable all buttons during request
+            disableButtons(true);
+
+            // Get current index from the template
+            const currentIndex = parseInt('{{ index if index is defined else 0 }}');
+
+            // Make AJAX request
+            fetch('/manual_review/action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: action,
+                    index: currentIndex
+                })
+            })
+            .then(response => {
+                // Check if response is OK (2xx status)
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                // Check if response is actually JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Server returned non-JSON response. Please refresh the page and try again.');
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                if (data.ok) {
+                    if (data.redirect) {
+                        createNotification('Review completed! Redirecting to summary...', 'success');
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 1000);
+                    } else {
+                        // Update the finding content
+                        updateFindingContent(data);
+                    }
+                } else {
+                    console.error('Server Error:', data.error, data.error_type || '');
+                    
+                    // Provide user-friendly error messages based on error type
+                    let userMessage = data.error || 'An unknown error occurred.';
+                    let showReloadOption = false;
+                    
+                    if (data.error && data.error.includes('Session expired')) {
+                        userMessage = 'Your session has expired. Please reload the page and re-upload your file.';
+                        showReloadOption = true;
+                    } else if (data.error && data.error.includes('Data corruption')) {
+                        userMessage = 'File data was corrupted. Please reload the page and re-upload your file.';
+                        showReloadOption = true;
+                    } else if (data.error && data.error.includes('No findings')) {
+                        userMessage = 'No findings data available. Please reload the page and re-upload your file.';
+                        showReloadOption = true;
+                    }
+                    
+                    createNotification(userMessage, 'error', showReloadOption);
+                    disableButtons(false);
+                }
+            })
+            .catch(error => {
+                console.error('Request failed:', error);
+                
+                let errorMessage = 'Network error occurred.';
+                let showReloadOption = false;
+                
+                if (error.message && error.message.includes('HTTP 500')) {
+                    errorMessage = 'Server error occurred. The issue has been logged. Please try again or refresh the page.';
+                    showReloadOption = true;
+                } else if (error.message && error.message.includes('non-JSON response')) {
+                    errorMessage = error.message;
+                    showReloadOption = true;
+                } else if (!navigator.onLine) {
+                    errorMessage = 'No internet connection. Please check your connection and try again.';
+                } else {
+                    errorMessage = `Network error: ${error.message || 'Unknown error'}. Please try again.`;
+                }
+                
+                createNotification(errorMessage, 'error', showReloadOption);
+                disableButtons(false);
+            });
+        }
+
+        function updateFindingContent(data) {
+            const finding = data.finding;
+            const index = data.index;
+            const total = data.total;
+
+            // Update finding content
+            const findingHeader = document.querySelector('.finding-header');
+            if (findingHeader) {
+                findingHeader.innerHTML = '<span>🔍</span>' + finding.header;
+            }
+
+            const sectionContents = document.querySelectorAll('.finding-section .section-content');
+            if (sectionContents[0]) sectionContents[0].textContent = finding.description;
+            if (sectionContents[1]) sectionContents[1].textContent = finding.remediation;
+            
+            // Update audit section
+            if (sectionContents[2]) {
+                if (finding.audit_image_url) {
+                    sectionContents[2].innerHTML = '<img src="' + finding.audit_image_url + '" alt="Security Evidence" style="max-width: 100%; border-radius: 8px; margin-top: 0.5rem;">';
+                } else {
+                    sectionContents[2].textContent = finding.audit_status || 'No audit evidence available';
+                }
+            }
+
+            // Update progress indicator
+            const progressText = document.querySelector('.findings-header p strong');
+            if (progressText) {
+                progressText.textContent = 'Finding ' + (index + 1) + ' of ' + total;
+            }
+
+            // Update navigation buttons
+            updateNavigationButtons(data.has_prev, data.has_next, data.is_last);
+
+            // Re-enable buttons
+            disableButtons(false);
+
+            // Add slide animation
+            const findingCard = document.getElementById('finding-single');
+            if (findingCard) {
+                findingCard.style.animation = 'none';
+                setTimeout(() => {
+                    findingCard.style.animation = 'slideIn 0.4s ease-out';
+                }, 10);
+            }
+
+            // Show success notification
+            createNotification('Finding updated successfully!', 'success');
+        }
+
+        function updateNavigationButtons(hasPrev, hasNext, isLast) {
+            const navigationControls = document.querySelector('.navigation-controls');
+            if (!navigationControls) return;
+
+            let navigationHTML = '';
+
+            // Previous button or empty space
+            if (hasPrev) {
+                navigationHTML += '<a href="#" class="nav-btn nav-prev">← Previous</a>';
+            } else {
+                navigationHTML += '<div></div>';
+            }
+
+            // Next or Finish button
+            if (hasNext) {
+                navigationHTML += '<a href="#" class="nav-btn nav-next">Next →</a>';
+            } else {
+                navigationHTML += '<a href="#" class="nav-btn nav-finish">✅ Finished the Review</a>';
+            }
+
+            navigationControls.innerHTML = navigationHTML;
+
+            // Re-attach event listeners
+            attachButtonHandlers();
+        }
+
+        function disableButtons(disabled) {
+            const buttons = document.querySelectorAll('.action-btn, .nav-btn');
+            buttons.forEach(button => {
+                if (disabled) {
+                    button.style.pointerEvents = 'none';
+                    button.style.opacity = '0.6';
+                } else {
+                    button.style.pointerEvents = 'auto';
+                    button.style.opacity = '1';
+                }
+            });
+        }
+
+        // Legacy function for grid view (keep for backward compatibility)
+        function markFinding(findingIndex, status) {
+            const card = document.getElementById(`finding-${findingIndex}`);
+            
+            // Remove existing status classes
+            card.classList.remove('status-pass', 'status-fail');
+            
+            // Add status class with visual effects
+            if (status === 'pass') {
+                card.classList.add('status-pass');
+                card.style.background = 'linear-gradient(135deg, rgba(17, 153, 142, 0.2), rgba(56, 239, 125, 0.2))';
+                card.style.borderColor = 'rgba(56, 239, 125, 0.5)';
+                card.style.boxShadow = '0 0 30px rgba(56, 239, 125, 0.3)';
+            } else {
+                card.classList.add('status-fail');
+                card.style.background = 'linear-gradient(135deg, rgba(255, 65, 108, 0.2), rgba(255, 75, 43, 0.2))';
+                card.style.borderColor = 'rgba(255, 65, 108, 0.5)';
+                card.style.boxShadow = '0 0 30px rgba(255, 65, 108, 0.3)';
+            }
+            
+            // Animate card
+            card.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                card.style.transform = 'translateY(-8px) scale(1.02)';
+            }, 150);
+            
+            // Create floating notification
+            createNotification(`Finding marked as: ${status === 'pass' ? 'PASSED ✅' : 'FAILED ❌'}`, 'success');
+        }
+        
+        function createNotification(message, type = 'info', showReloadOption = false) {
+            const notification = document.createElement('div');
+            
+            // Create message content
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = message;
+            messageDiv.style.marginBottom = showReloadOption ? '1rem' : '0';
+            notification.appendChild(messageDiv);
+            
+            // Add reload button if requested
+            if (showReloadOption) {
+                const reloadBtn = document.createElement('button');
+                reloadBtn.textContent = '🔄 Reload Page';
+                reloadBtn.style.cssText = `
+                    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
+                    color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
+                    font-size: 0.9rem; transition: all 0.3s ease;
+                `;
+                reloadBtn.onmouseover = () => reloadBtn.style.background = 'rgba(255,255,255,0.3)';
+                reloadBtn.onmouseout = () => reloadBtn.style.background = 'rgba(255,255,255,0.2)';
+                reloadBtn.onclick = () => window.location.reload();
+                notification.appendChild(reloadBtn);
+            }
+            
+            // Set notification style based on type
+            let backgroundColor, borderColor, duration;
+            switch (type) {
+                case 'success':
+                    backgroundColor = 'linear-gradient(135deg, rgba(17, 153, 142, 0.9), rgba(56, 239, 125, 0.9))';
+                    borderColor = 'rgba(56, 239, 125, 0.3)';
+                    duration = 3000;
+                    break;
+                case 'error':
+                    backgroundColor = 'linear-gradient(135deg, rgba(255, 65, 108, 0.9), rgba(255, 75, 43, 0.9))';
+                    borderColor = 'rgba(255, 65, 108, 0.3)';
+                    duration = showReloadOption ? 10000 : 5000; // Longer duration for errors with options
+                    break;
+                case 'warning':
+                    backgroundColor = 'linear-gradient(135deg, rgba(255, 154, 0, 0.9), rgba(255, 193, 7, 0.9))';
+                    borderColor = 'rgba(255, 154, 0, 0.3)';
+                    duration = 4000;
+                    break;
+                default: // 'info'
+                    backgroundColor = 'linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9))';
+                    borderColor = 'rgba(102, 126, 234, 0.3)';
+                    duration = 3000;
+            }
+            
+            notification.style.cssText = `
+                position: fixed; top: 80px; right: 20px; z-index: 2000;
+                background: ${backgroundColor};
+                backdrop-filter: blur(20px); border-radius: 12px; padding: 1rem 1.5rem;
+                color: white; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                border: 1px solid ${borderColor}; transform: translateX(400px);
+                transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                max-width: 350px; word-wrap: break-word; cursor: pointer;
+            `;
+            
+            // Click to dismiss
+            notification.onclick = () => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 500);
+            };
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+            
+            // Auto-dismiss after duration
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.transform = 'translateX(400px)';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            document.body.removeChild(notification);
+                        }
+                    }, 500);
+                }
+            }, duration);
+        }
+        
+        // Add file drag and drop functionality
+        const fileInput = document.getElementById('pdf_file');
+        const uploadCard = document.querySelector('.upload-card');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadCard.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadCard.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadCard.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            uploadCard.style.borderColor = 'rgba(102, 126, 234, 0.6)';
+            uploadCard.style.background = 'rgba(102, 126, 234, 0.1)';
+            uploadCard.style.transform = 'translateY(-5px) scale(1.02)';
+        }
+        
+        function unhighlight() {
+            uploadCard.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            uploadCard.style.background = 'rgba(255, 255, 255, 0.08)';
+            uploadCard.style.transform = 'translateY(0) scale(1)';
+        }
+        
+        uploadCard.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            fileInput.files = files;
+            
+            if (files.length > 0) {
+                createNotification(`File selected: ${files[0].name} 📄`);
+            }
+        }
+    </script>
+</body>
+</html>

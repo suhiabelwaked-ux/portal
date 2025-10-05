@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Router/Switch Vulnerability Lookup</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Router/Switch Lookup</h1>
+            <div class="nav-links">
+                <a href="{{ url_for('template_main.main_page') }}">🏠 Home</a>
+                <a href="{{ url_for('template_main.lookup_firewall') }}">🔥 Firewall Lookup</a>
+                <a href="{{ url_for('logout') }}">🚪 Logout</a>
+            </div>
+        </div>
+        
+        {% if message %}
+            <div class="message success">{{ message }}</div>
+        {% endif %}
+        
+        <div class="form-container glass">
+            <h2 style="color: white; margin-bottom: 1.5rem; text-align: center;">🛡️ Search Router/Switch Vulnerabilities</h2>
+            
+            <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="search_name">🔍 Vulnerability Name:</label>
+                        <input type="text" id="search_name" name="search_name" 
+                               placeholder="e.g., Weak SNMP Community Strings Were Configured" 
+                               value="{{ vulnerability_name or '' }}" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-service" style="width: 100%; margin-top: 1rem;">
+                    🔍 Search Database
+                </button>
+            </form>
+        </div>
+
+        {% if vulnerability_name %}
+            <div class="form-container glass" style="margin-top: 2rem;">
+                <h3 style="color: white; text-align: center; margin-bottom: 1rem;">
+                    📊 Search Results for: "{{ vulnerability_name }}"
+                </h3>
+                
+                {% if not not_found and not is_pending %}
+                    <div class="result-card severity-{{ severity | lower }}">
+                        <strong>🚨 Severity Level: <span style="font-size: 1.3em; text-transform: uppercase; letter-spacing: 1px;">{{ severity }}</span></strong>
+                        <p style="margin-top: 0.5rem; opacity: 0.9;">
+                            This vulnerability has been classified and documented in our database.
+                        </p>
+                    </div>
+                {% elif is_pending %}
+                    <div class="result-card" style="background: var(--warning-gradient); color: var(--text-primary);">
+                        <strong>⏳ Pending Review</strong>
+                        <p style="margin-top: 0.5rem;">
+                            This vulnerability is currently under administrative review.
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="result-card" style="background: rgba(255, 107, 107, 0.2); border: 2px solid rgba(255, 107, 107, 0.4);">
+                        <strong>❌ Vulnerability Not Found</strong>
+                        <p style="margin-top: 0.5rem;">
+                            "{{ vulnerability_name }}" was not found in our router database.
+                        </p>
+                    </div>
+                    
+                    <div class="form-container glass" style="margin-top: 2rem;">
+                        <h4 style="color: white; margin-bottom: 1rem; text-align: center;">
+                            📝 Submit New Vulnerability for Review
+                        </h4>
+                        <form method="post" action="{{ url_for('template_main.add_to_pending') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="add_name" value="{{ vulnerability_name }}">
+                            <input type="hidden" name="search_type" value="router">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="add_severity">🚨 Severity Level:</label>
+                                    <select id="add_severity" name="add_severity" required>
+                                        <option value="">Select Severity...</option>
+                                        <option value="Critical">🔴 Critical</option>
+                                        <option value="High">🟠 High</option>
+                                        <option value="Medium">🟡 Medium</option>
+                                        <option value="Low">🟢 Low</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-service" style="width: 100%; margin-top: 1rem; background: var(--secondary-gradient);">
+                                📤 Submit for Admin Review
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

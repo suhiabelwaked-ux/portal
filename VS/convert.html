@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Document Converter</h1>
+            <div class="nav-links">
+                <a href="{{ url_for('template_main.main_page') }}">🏠 Home</a>
+                <a href="{{ url_for('template_auth.logout') }}">🚪 Logout</a>
+            </div>
+        </div>
+        
+        {% if message %}
+            {% if "successfully" in message %}
+                <div class="message success">
+                    <strong>✅ Success!</strong> {{ message }}
+                    {% if download_link %}
+                        <br><br>
+                        <a href="{{ download_link }}" class="btn btn-service" style="background: var(--success-gradient);">
+                            📥 Download Report
+                        </a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="message error">
+                    <strong>❌ Error:</strong> {{ message }}
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <div class="welcome-container">
+            <h2 style="margin-bottom: 1rem;">🔄 PDF to Word Converter</h2>
+            <p style="margin-bottom: 2rem;">
+                Choose your report type and upload a PDF file to convert it to a Word document (.docx)
+            </p>
+            
+            <div class="services-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                <div class="service-card">
+                    <div class="service-icon">🔍</div>
+                    <h3>Router/Switch Reports</h3>
+                    <p>Convert router and switch configuration reports to Word format</p>
+                    
+                    <form method="post" action="{{ url_for('template_main.convert_router') }}" enctype="multipart/form-data" 
+                          style="display: flex; flex-direction: column; gap: 1rem;">
+                        <input type="file" name="pdf_file" accept=".pdf" required 
+                               style="background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); 
+                                      padding: 0.8rem; color: white; border-radius: 10px;">
+                        <button type="submit" class="btn-service">
+                            🚀 Convert Router Report
+                        </button>
+                    </form>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🔥</div>
+                    <h3>Firewall Reports</h3>
+                    <p>Convert firewall configuration reports to Word format</p>
+                    
+                    <form method="post" action="{{ url_for('template_main.convert_firewall') }}" enctype="multipart/form-data" 
+                          style="display: flex; flex-direction: column; gap: 1rem;">
+                        <input type="file" name="pdf_file" accept=".pdf" required 
+                               style="background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); 
+                                      padding: 0.8rem; color: white; border-radius: 10px;">
+                        <button type="submit" class="btn-service">
+                            🚀 Convert Firewall Report
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
